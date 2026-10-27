@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100b24">
+  <title>8-Bit Encoder & Decoder</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0718;
+      --panel: rgba(25, 17, 49, .82);
+      --panel-2: rgba(35, 24, 66, .72);
+      --text: #f5f0ff;
+      --muted: #b6a9d3;
+      --purple: #a78bfa;
+      --pink: #f0abfc;
+      --border: rgba(196, 181, 253, .22);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 15% 5%, rgba(124, 58, 237, .24), transparent 42%),
+        radial-gradient(ellipse at 90% 20%, rgba(217, 70, 239, .14), transparent 36%),
+        var(--bg);
+      padding: 32px 16px 44px;
+    }
+    .container { width: min(960px, 100%); margin: 0 auto; }
+    header { text-align: center; margin: 10px auto 28px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); border-radius: 999px;
+      background: rgba(167, 139, 250, .09); color: #ddd0ff;
+      padding: 7px 12px; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase;
+    }
+    h1 { font-size: clamp(2rem, 6vw, 3.6rem); letter-spacing: -.045em; margin: 16px 0 10px; line-height: 1.08; }
+    h1 span { background: linear-gradient(100deg, #c4b5fd, #f0abfc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .subtitle { color: var(--muted); max-width: 600px; margin: 0 auto; line-height: 1.65; }
+    .card {
+      border: 1px solid var(--border); border-radius: 22px;
+      background: var(--panel); box-shadow: 0 24px 80px rgba(0,0,0,.25);
+      backdrop-filter: blur(16px); overflow: hidden;
+    }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 7px; gap: 7px; background: rgba(255,255,255,.025); border-bottom: 1px solid var(--border); }
+    .tab {
+      border: 0; border-radius: 14px; padding: 13px 10px; color: var(--muted);
+      background: transparent; font: inherit; font-weight: 700; cursor: pointer; transition: .2s;
+    }
+    .tab.active { color: white; background: linear-gradient(110deg, #7c3aed, #a855f7); box-shadow: 0 5px 18px rgba(124,58,237,.25); }
+    .content { padding: clamp(18px, 4vw, 30px); }
+    .section-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .icon {
+      display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px;
+      border-radius: 13px; background: rgba(167,139,250,.13); border: 1px solid var(--border); font-size: 1.25rem;
+    }
+    h2 { font-size: 1.2rem; margin: 0; }
+    .hint { color: var(--muted); font-size: .9rem; line-height: 1.5; margin: 0 0 20px; }
+    label { display: block; font-size: .9rem; font-weight: 650; margin: 18px 0 9px; }
+    textarea {
+      display: block; width: 100%; min-height: 150px; resize: vertical;
+      border: 1px solid rgba(196,181,253,.25); border-radius: 14px;
+      background: rgba(7, 4, 18, .68); color: var(--text);
+      padding: 15px; font: 500 .98rem/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      outline: none; transition: border .2s, box-shadow .2s;
+    }
+    textarea:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(167,139,250,.13); }
+    #inputText { font-family: inherit; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    button.action {
+      display: inline-flex; justify-content: center; align-items: center; gap: 8px;
+      border-radius: 12px; padding: 12px 17px; border: 1px solid var(--border);
+      font: inherit; font-weight: 700; cursor: pointer; transition: transform .15s, filter .15s;
+    }
+    button.action:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .primary { color: #fff; background: linear-gradient(110deg, #7c3aed, #a855f7); border-color: transparent !important; }
+    .secondary { color: #e9ddff; background: rgba(167,139,250,.09); }
+    .result-wrap { margin-top: 25px; }
+    .result-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 9px; }
+    .result-top label { margin: 0; }
+    .result-badge { color: #d8c9ff; background: rgba(167,139,250,.1); border: 1px solid var(--border); border-radius: 999px; padding: 5px 9px; font-size: .75rem; }
+    #output { min-height: 115px; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .status { min-height: 22px; margin: 9px 2px 0; font-size: .86rem; color: #c4b5fd; }
+    .status.error { color: #fda4af; }
+    .example { margin-top: 20px; border: 1px solid var(--border); background: var(--panel-2); padding: 18px; border-radius: 17px; }
+    .example h3 { font-size: .98rem; margin: 0 0 10px; }
+    .example p { color: var(--muted); margin: 7px 0; font-size: .88rem; line-height: 1.6; }
+    code { color: #e9d5ff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+    footer { text-align: center; color: #8f82ac; font-size: .82rem; line-height: 1.6; margin: 22px 0 0; }
+    .hidden { display: none !important; }
+    @media (max-width: 520px) {
+      body { padding: 20px 12px 30px; }
+      .tabs { gap: 5px; }
+      .tab { font-size: .88rem; }
+      .actions button { flex: 1; }
+      .result-top { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div class="eyebrow"><span>✦</span> Binary message lab</div>
+      <h1>8-Bit <span>Encoder &amp; Decoder</span></h1>
+      <p class="subtitle">Turn ordinary text into 8-bit binary, or decode binary back into a readable message — instantly, right in your browser.</p>
+    </header>
+
+    <section class="card" aria-label="Encoder and decoder tool">
+      <div class="tabs" role="tablist" aria-label="Choose a mode">
+        <button class="tab active" id="encodeTab" role="tab" aria-selected="true" aria-controls="encodePanel">✧ Text → Binary</button>
+        <button class="tab" id="decodeTab" role="tab" aria-selected="false" aria-controls="decodePanel">⌘ Binary → Text</button>
+      </div>
+
+      <div class="content" id="encodePanel">
+        <div class="section-heading"><div class="icon">✍️</div><h2>Encode your message</h2></div>
+        <p class="hint">Type any message below. Each UTF-8 byte will be displayed as a group of 8 bits.</p>
+        <label for="inputText">Your message</label>
+        <textarea id="inputText" spellcheck="false" placeholder="Type something… e.g. I miss you">I miss you</textarea>
+        <div class="actions">
+          <button class="action primary" id="encodeBtn">⚡ Encode to 8-bit</button>
+          <button class="action secondary" id="loadExample">↺ Load example</button>
+          <button class="action secondary" id="clearEncode">Clear</button>
+        </div>
+        <div class="result-wrap">
+          <div class="result-top"><label for="encodeOutput">Binary output</label><span class="result-badge">8-bit groups</span></div>
+          <textarea id="encodeOutput" readonly placeholder="Your binary result will appear here…"></textarea>
+          <div class="actions"><button class="action secondary" id="copyEncode">▣ Copy binary</button></div>
+          <p class="status" id="encodeStatus" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="content hidden" id="decodePanel">
+        <div class="section-heading"><div class="icon">⌘</div><h2>Decode a binary message</h2></div>
+        <p class="hint">Paste 8-bit binary groups separated by spaces or new lines. The decoder supports UTF-8 text.</p>
+        <label for="inputBinary">8-bit binary input</label>
+        <textarea id="inputBinary" spellcheck="false" placeholder="01001001 00100000 01101101 01101001&#10;01110011 01110011 00100000&#10;01111001 01101111 01110101"></textarea>
+        <div class="actions">
+          <button class="action primary" id="decodeBtn">⚡ Decode message</button>
+          <button class="action secondary" id="loadBinary">↺ Load example</button>
+          <button class="action secondary" id="clearDecode">Clear</button>
+        </div>
+        <div class="result-wrap">
+          <div class="result-top"><label for="decodeOutput">Decoded message</label><span class="result-badge">Plaintext</span></div>
+          <textarea id="decodeOutput" readonly placeholder="Your decoded message will appear here…"></textarea>
+          <div class="actions"><button class="action secondary" id="copyDecode">▣ Copy text</button></div>
+          <p class="status" id="decodeStatus" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="example">
+      <h3>💡 Example: “I miss you”</h3>
+      <p><strong>Plaintext:</strong> <code>I miss you</code></p>
+      <p><strong>8-bit binary:</strong><br><code>01001001 00100000 01101101 01101001 01110011 01110011 00100000 01111001 01101111 01110101</code></p>
+      <p><strong>Decoded message:</strong> <code>I miss you</code></p>
+    </section>
+    <footer>Made for quick text conversion · No sign-up required · Your text stays in this browser tab.<br>Note: Encoding is not encryption; binary messages are not secret.</footer>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const exampleText = "I miss you";
+    const exampleBinary = "01001001 00100000 01101101 01101001 01110011 01110011 00100000 01111001 01101111 01110101";
+
+    function setStatus(id, message, isError = false) {
+      const el = $(id);
+      el.textContent = message;
+      el.classList.toggle("error", isError);
+    }
+
+    function showMode(mode) {
+      const encode = mode === "encode";
+      $("encodePanel").classList.toggle("hidden", !encode);
+      $("decodePanel").classList.toggle("hidden", encode);
+      $("encodeTab").classList.toggle("active", encode);
+      $("decodeTab").classList.toggle("active", !encode);
+      $("encodeTab").setAttribute("aria-selected", String(encode));
+      $("decodeTab").setAttribute("aria-selected", String(!encode));
+    }
+    $("encodeTab").addEventListener("click", () => showMode("encode"));
+    $("decodeTab").addEventListener("click", () => showMode("decode"));
+
+    function encodeText() {
+      const text = $("inputText").value;
+      if (!text.length) {
+        $("encodeOutput").value = "";
+        setStatus("encodeStatus", "Enter a message to encode.", true);
+        return;
+      }
+      const bytes = new TextEncoder().encode(text);
+      $("encodeOutput").value = Array.from(bytes, byte => byte.toString(2).padStart(8, "0")).join(" ");
+      setStatus("encodeStatus", `Encoded ${bytes.length} byte${bytes.length === 1 ? "" : "s"} successfully.`);
+    }
+
+    function decodeBinary() {
+      const raw = $("inputBinary").value.trim();
+      if (!raw) {
+        $("decodeOutput").value = "";
+        setStatus("decodeStatus", "Enter some 8-bit binary to decode.", true);
+        return;
+      }
+      const groups = raw.split(/\s+/);
+      if (groups.some(group => !/^[01]{8}$/.test(group))) {
+        $("decodeOutput").value = "";
+        setStatus("decodeStatus", "Invalid input. Every group must contain exactly 8 bits (0 or 1), separated by spaces or new lines.", true);
+        return;
+      }
+      try {
+        const bytes = new Uint8Array(groups.map(group => parseInt(group, 2)));
+        const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+        $("decodeOutput").value = decoded;
+        setStatus("decodeStatus", `Decoded ${groups.length} byte${groups.length === 1 ? "" : "s"} successfully.`);
+      } catch {
+        $("decodeOutput").value = "";
+        setStatus("decodeStatus", "These bytes are not valid UTF-8 text. Check the binary groups and try again.", true);
+      }
+    }
+
+    async function copyValue(sourceId, statusId, label) {
+      const value = $(sourceId).value;
+      if (!value) {
+        setStatus(statusId, "Nothing to copy yet.", true);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(value);
+        setStatus(statusId, `${label} copied to clipboard.`);
+      } catch {
+        $(sourceId).focus();
+        $(sourceId).select();
+        setStatus(statusId, "Clipboard access was blocked. The result is selected — press Ctrl+C to copy.", true);
+      }
+    }
+
+    $("encodeBtn").addEventListener("click", encodeText);
+    $("decodeBtn").addEventListener("click", decodeBinary);
+    $("loadExample").addEventListener("click", () => {
+      $("inputText").value = exampleText;
+      encodeText();
+    });
+    $("loadBinary").addEventListener("click", () => {
+      $("inputBinary").value = exampleBinary;
+      decodeBinary();
+    });
+    $("clearEncode").addEventListener("click", () => {
+      $("inputText").value = "";
+      $("encodeOutput").value = "";
+      setStatus("encodeStatus", "");
+      $("inputText").focus();
+    });
+    $("clearDecode").addEventListener("click", () => {
+      $("inputBinary").value = "";
+      $("decodeOutput").value = "";
+      setStatus("decodeStatus", "");
+      $("inputBinary").focus();
+    });
+    $("copyEncode").addEventListener("click", () => copyValue("encodeOutput", "encodeStatus", "Binary"));
+    $("copyDecode").addEventListener("click", () => copyValue("decodeOutput", "decodeStatus", "Decoded text"));
+
+    $("inputText").addEventListener("keydown", event => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") encodeText();
+    });
+    $("inputBinary").addEventListener("keydown", event => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") decodeBinary();
+    });
+
+    encodeText();
+  </script>
+</body>
+</html>
